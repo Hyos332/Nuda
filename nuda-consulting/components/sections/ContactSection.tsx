@@ -36,9 +36,35 @@ export const ContactSection = () => {
     } catch (error) {
       console.error(error);
       setStatus("idle");
-      alert("Error al contactar con el núcleo. Reintente.");
-    }
-  };
+      toast.error("FALLO DE PROTOCOLO", { description: "EL NÚCLEO NO RESPONDE. REINTENTE TRANSMISIÓN."});
+      }
+    };
+
+  // 1b. Reenviar OTP
+  const handleResendOTP = async () => {
+  if (!formRef.current) return;
+  const formData = new FormData(formRef.current);
+  
+  const email = formData.get("email");
+  const nombre = formData.get("nombre");
+
+  // Definimos la promesa del fetch
+  const resendPromise = fetch("/api/otp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, nombre }),
+  }).then(async (res) => {
+    if (!res.ok) throw new Error("Fallo en el reenvío");
+    return res;
+  });
+
+  // Usamos Sonner para gestionar los estados visuales automáticamente
+  toast.promise(resendPromise, {
+    loading: 'RE-GENERANDO TOKEN DE ACCESO...',
+    success: 'NUEVO CÓDIGO TRANSMITIDO',
+    error: 'ERROR EN EL PROTOCOLO DE REENVÍO',
+  });
+};
 
   // 2. SEGUNDO PASO: Enviar código y mensaje final
   const handleFinalSubmit = async (e: React.FormEvent) => {
@@ -131,9 +157,33 @@ export const ContactSection = () => {
                     className="space-y-12 pt-4"
                   >
                     <div className="group relative border-b border-[#a31d1d] bg-[#a31d1d]/5 p-4">
-                      {/* <span className="text-[#a31d1d] font-mono text-[9px] block mb-2 uppercase">Protocol_Required: OTP_CODE</span> */}
-                      <input required name="otp" type="text" maxLength={6} placeholder="Introduce el código de 6 dígitos" className="w-full bg-transparent text-white outline-none placeholder:text-white/20 uppercase font-bold tracking-[0.5em] text-xl" />
-                      <p className="text-[8px] text-[#a31d1d] font-mono mt-2 uppercase">Verifica tu bandeja de entrada. El código expira en 10 min.</p>
+                      <input 
+                        required 
+                        name="otp" 
+                        type="text" 
+                        maxLength={6} 
+                        placeholder="******" 
+                        className="w-full bg-transparent text-white outline-none placeholder:text-white/20 uppercase font-bold tracking-[0.5em] text-xl" 
+                      />
+                      
+                      <div className="flex justify-between items-center mt-4">
+                        {/* Indicador de tiempo de vida */}
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-1 bg-[#a31d1d] animate-pulse" />
+                          <p className="text-[7px] text-[#a31d1d] font-mono uppercase tracking-widest">
+                            TTL: 600s // STATUS: ACTIVE
+                          </p>
+                        </div>
+
+                        {/* El Botón de Reenvío */}
+                        <button 
+                          type="button" 
+                          onClick={handleResendOTP}
+                          className="text-[7px] text-white/40 hover:text-white font-mono uppercase underline decoration-[#a31d1d] underline-offset-4 transition-all hover:tracking-widest"
+                        >
+                          [ Reenviar Token ]
+                        </button>
+                      </div>
                     </div>
 
                     <div className="group relative border-b border-white/10 focus-within:border-[#a31d1d]">
