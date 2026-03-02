@@ -2,6 +2,7 @@
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { toast } from "sonner";
 
 export const ContactSection = () => {
   // Estados: idle -> requesting_otp -> awaiting_otp -> sending_final -> success
@@ -41,46 +42,57 @@ export const ContactSection = () => {
 
   // 2. SEGUNDO PASO: Enviar código y mensaje final
   const handleFinalSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formRef.current) return;
-    
-    setStatus("sending_final");
-    const formData = new FormData(formRef.current);
-    
-    const payload = {
-      nombre: formData.get("nombre"),
-      email: formData.get("email"),
-      mensaje: formData.get("mensaje"),
-      otp: formData.get("otp"), // <--- Nuevo campo
-      website: formData.get("website"),
-      formStartedAt: formStartedAtRef.current,
-    };
-
-    try {
-      const response = await fetch("/api/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        setStatus("success");
-        setTimeout(() => {
-          formRef.current?.reset();
-          formStartedAtRef.current = Date.now();
-          setStatus("idle");
-        }, 5000);
-      } else {
-        const errorData = await response.json();
-        alert(errorData.error || "Error en la validación");
-        setStatus("awaiting_otp");
-      }
-    } catch (error) {
-      setStatus("awaiting_otp");
-      alert("Error en la transmisión final.");
-    }
+  e.preventDefault();
+  if (!formRef.current) return;
+  
+  setStatus("sending_final");
+  const formData = new FormData(formRef.current);
+  
+  const payload = {
+    nombre: formData.get("nombre"),
+    email: formData.get("email"),
+    mensaje: formData.get("mensaje"),
+    otp: formData.get("otp"),
+    website: formData.get("website"),
+    formStartedAt: formStartedAtRef.current,
   };
 
+  try {
+    const response = await fetch("/api/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) {
+      setStatus("success");
+      // Notificación de éxito
+      toast.success("TRANSMISIÓN COMPLETADA", {
+        description: "PAYLOAD ALOJADO EN EL NÚCLEO DE NUDA."
+      });
+      
+      setTimeout(() => {
+        formRef.current?.reset();
+        formStartedAtRef.current = Date.now();
+        setStatus("idle");
+      }, 5000);
+    } else {
+      const errorData = await response.json();
+      // Notificación de error de validación (ej. OTP incorrecto)
+      toast.error("ERROR DE VALIDACIÓN", {
+        description: (errorData.error || "PROTOCOLO RECHAZADO").toUpperCase()
+      });
+      setStatus("awaiting_otp");
+    }
+  } catch (error) {
+    setStatus("awaiting_otp");
+    // Notificación de error de red o servidor
+    toast.error("FALLO CRÍTICO", {
+      description: "ERROR EN LA TRANSMISIÓN FINAL. REINTENTE."
+    });
+  }
+};
+  
   return (
     <section id="contacto" className="min-h-screen w-full bg-black flex flex-col items-center justify-center py-32 px-6 relative overflow-hidden">
       <SectionHeader number="03" title="Contacto" />
@@ -100,12 +112,12 @@ export const ContactSection = () => {
                 <input type="text" name="website" tabIndex={-1} className="hidden" />
 
                 <div className="group relative border-b border-white/10 focus-within:border-[#a31d1d]">
-                  <span className="text-[#a31d1d] font-mono text-[9px] block mb-2 opacity-0 group-focus-within:opacity-100 transition-opacity uppercase">VAR_IDENTITY</span>
+                  {/* <span className="text-[#a31d1d] font-mono text-[9px] block mb-2 opacity-0 group-focus-within:opacity-100 transition-opacity uppercase">VAR_IDENTITY</span> */}
                   <input required name="nombre" type="text" placeholder="01: Nombre o agencia" className="w-full bg-transparent py-4 text-white outline-none placeholder:text-white/20 uppercase font-bold tracking-tighter text-lg md:text-2xl" />
                 </div>
 
                 <div className="group relative border-b border-white/10 focus-within:border-[#a31d1d]">
-                  <span className="text-[#a31d1d] font-mono text-[9px] block mb-2 opacity-0 group-focus-within:opacity-100 transition-opacity uppercase">VAR_ENLACE</span>
+                  {/* <span className="text-[#a31d1d] font-mono text-[9px] block mb-2 opacity-0 group-focus-within:opacity-100 transition-opacity uppercase">VAR_ENLACE</span> */}
                   <input required name="email" type="email" placeholder="02: Email" className="w-full bg-transparent py-4 text-white outline-none placeholder:text-white/20 uppercase font-bold tracking-tighter text-lg md:text-2xl" />
                 </div>
               </div>
@@ -119,13 +131,13 @@ export const ContactSection = () => {
                     className="space-y-12 pt-4"
                   >
                     <div className="group relative border-b border-[#a31d1d] bg-[#a31d1d]/5 p-4">
-                      <span className="text-[#a31d1d] font-mono text-[9px] block mb-2 uppercase">Protocol_Required: OTP_CODE</span>
+                      {/* <span className="text-[#a31d1d] font-mono text-[9px] block mb-2 uppercase">Protocol_Required: OTP_CODE</span> */}
                       <input required name="otp" type="text" maxLength={6} placeholder="Introduce el código de 6 dígitos" className="w-full bg-transparent text-white outline-none placeholder:text-white/20 uppercase font-bold tracking-[0.5em] text-xl" />
-                      <p className="text-[8px] text-[#a31d1d] font-mono mt-2 uppercase">Verifica tu bandeja de entrada. El código expira en 5 min.</p>
+                      <p className="text-[8px] text-[#a31d1d] font-mono mt-2 uppercase">Verifica tu bandeja de entrada. El código expira en 10 min.</p>
                     </div>
 
                     <div className="group relative border-b border-white/10 focus-within:border-[#a31d1d]">
-                      <span className="text-[#a31d1d] font-mono text-[9px] block mb-2 opacity-0 group-focus-within:opacity-100 transition-opacity uppercase">VAR_CONCEPTO</span>
+                      {/* <span className="text-[#a31d1d] font-mono text-[9px] block mb-2 opacity-0 group-focus-within:opacity-100 transition-opacity uppercase">VAR_CONCEPTO</span> */}
                       <textarea required name="mensaje" rows={3} placeholder="03: Describe tu idea" className="w-full bg-transparent py-4 text-white outline-none placeholder:text-white/20 uppercase font-bold tracking-tighter text-lg md:text-2xl resize-none" />
                     </div>
                   </motion.div>

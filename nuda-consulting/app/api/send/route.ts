@@ -1,8 +1,11 @@
 import { Resend } from "resend";
 import { NextResponse } from "next/server";
-import { kv } from "@vercel/kv"; // Importación necesaria para la validación
+import { Redis } from "ioredis"; // Cambiado: Ahora usamos ioredis
 
 export const runtime = "nodejs";
+
+// Configuración de Redis
+const redis = new Redis(process.env.REDIS_URL as string);
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
@@ -112,12 +115,12 @@ function validatePayload(payload: unknown): {
   const nombre = normalizeInput(input.nombre);
   const email = normalizeInput(input.email).toLowerCase();
   const mensaje = normalizeInput(input.mensaje);
-  const otp = normalizeInput(input.otp); // Añadimos OTP a la validación
+  const otp = normalizeInput(input.otp);
 
   if (nombre.length < 2 || nombre.length > MAX_NOMBRE_LENGTH) return { ok: false };
   if (email.length < 5 || email.length > MAX_EMAIL_LENGTH || !emailRegex.test(email)) return { ok: false };
   if (mensaje.length < MIN_MENSAJE_LENGTH || mensaje.length > MAX_MENSAJE_LENGTH) return { ok: false };
-  if (otp.length !== 6) return { ok: false }; // El código debe ser de 6 dígitos
+  if (otp.length !== 6) return { ok: false };
 
   return { ok: true, data: { nombre, email, mensaje, otp } };
 }
@@ -148,35 +151,33 @@ export async function POST(request: Request) {
   try {
     const payload = rawPayload as Record<string, unknown>;
     
-    // 1. Detección de Bots
     if (hasBotSignal(payload)) {
       return NextResponse.json({ error: "Solicitud bloqueada" }, { status: 400 });
     }
 
-    // 2. Validación de estructura de datos
     const validated = validatePayload(payload);
     if (!validated.ok) {
       return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
     }
 
-    // 3. VALIDACIÓN TÉCNICA DEL OTP (LA ADUANA)
+    // --- VALIDACIÓN TÉCNICA CON IOREDIS ---
     const emailKey = `otp:${validated.data.email}`;
-    const storedCode = await kv.get<string>(emailKey);
+    const storedCode = await redis.get(emailKey); // Cambiado kv.get por redis.get
 
     if (!storedCode || storedCode !== validated.data.otp) {
       return NextResponse.json({ error: "Código de verificación inválido o expirado" }, { status: 401 });
     }
 
-    // Si el código es correcto, lo eliminamos inmediatamente para evitar reuso
-    await kv.del(emailKey);
+    // Borramos el código para que no se pueda reutilizar (One-time use)
+    await redis.del(emailKey); 
 
-    // 4. Preparación de datos seguros
+    // --- PREPARACIÓN Y ENVÍO ---
     const safeNombre = escapeHtml(validated.data.nombre);
     const safeEmail = escapeHtml(validated.data.email);
     const safeMensaje = escapeHtml(validated.data.mensaje);
     const safeNombreForSubject = sanitizeHeaderValue(validated.data.nombre);
 
-    // 5. ENVÍO AL EQUIPO NUDA (ADMIN)
+    // Notificación para ti (Admin)
     const adminResult = await resend.emails.send({
       from: "SISTEMA NUDA <contactonuda@nuda.com.es>",
       to: ["bryanbaquedano11@gmail.com", "contactonuda@nuda.com.es"],
@@ -197,7 +198,7 @@ export async function POST(request: Request) {
 
     if (adminResult.error) throw new Error(adminResult.error.message);
 
-    // 6. ENVÍO DE CONFIRMACIÓN AL CLIENTE
+    // Confirmación para el cliente
     const userResult = await resend.emails.send({
       from: "NUDA <contactonuda@nuda.com.es>",
       to: [validated.data.email],
