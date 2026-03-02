@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     // 1. CORREO PARA TI (Notificación de nuevo lead)
     await resend.emails.send({
       // CAMBIO: Ahora usas tu dominio oficial nuda.com.es
-      from: 'SISTEMA NUDA <nuda@nuda.com.es>', 
+      from: 'SISTEMA NUDA <contactonuda@nuda.com.es>', 
       to: ['bryanbaquedano11@gmail.com'], 
       subject: `[NUDA CORE] Nuevo Payload: ${nombre}`,
       html: `
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     // 2. CORREO PARA EL CLIENTE (Confirmación automática)
     await resend.emails.send({
       // CAMBIO: Remitente profesional con el nuevo dominio
-      from: 'NUDA <contacto@nuda.com.es>', 
+      from: 'NUDA <contactonuda@nuda.com.es>', 
       to: [email], 
       subject: 'Información recibida',
       html: `
