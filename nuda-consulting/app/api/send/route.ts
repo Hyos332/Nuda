@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     await resend.emails.send({
       // CAMBIO: Ahora usas tu dominio oficial nuda.com.es
       from: 'SISTEMA NUDA <contactonuda@nuda.com.es>', 
-      to: ['bryanbaquedano11@gmail.com'], 
+      to: ['bryanbaquedano11@gmail.com', 'contactonuda@nuda.com.es'], 
       subject: `[NUDA CORE] Nuevo Payload: ${nombre}`,
       html: `
         <div style="font-family: monospace; background: #000; color: #fff; padding: 20px; border: 1px solid #a31d1d;">
