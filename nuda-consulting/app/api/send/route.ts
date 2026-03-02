@@ -184,7 +184,7 @@ export async function POST(request: Request) {
     // Notificación para ti (Admin)
     const adminResult = await resend.emails.send({
       from: "SISTEMA NUDA <contactonuda@nuda.com.es>",
-      to: ["bryanbaquedano11@gmail.com", "contactonuda@nuda.com.es"],
+      to: ["contactonuda@nuda.com.es"],
       replyTo: validated.data.email,
       subject: `[NUDA CORE] Nuevo Payload: ${safeNombreForSubject}`,
       html: `
