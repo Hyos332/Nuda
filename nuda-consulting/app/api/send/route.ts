@@ -160,16 +160,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
     }
 
-    // --- VALIDACIÓN TÉCNICA CON IOREDIS ---
+// --- VALIDACIÓN TÉCNICA CON IOREDIS ---
     const emailKey = `otp:${validated.data.email}`;
-    const storedCode = await redis.get(emailKey); // Cambiado kv.get por redis.get
+    const storedCode = await redis.get(emailKey);
 
+    // 1. Validamos. Si NO coincide, devolvemos error pero NO borramos nada de Redis.
     if (!storedCode || storedCode !== validated.data.otp) {
-      return NextResponse.json({ error: "Código de verificación inválido o expirado" }, { status: 401 });
+      return NextResponse.json({ 
+        error: "Código inválido. Verifica el último correo recibido." 
+      }, { status: 401 });
     }
 
-    // Borramos el código para que no se pueda reutilizar (One-time use)
-    await redis.del(emailKey); 
+    // 2. SOLO si el código es CORRECTO, llegamos a esta línea y lo borramos.
+    // Esto evita que el código se use dos veces, pero permite corregir errores de escritura.
+    await redis.del(emailKey);
 
     // --- PREPARACIÓN Y ENVÍO ---
     const safeNombre = escapeHtml(validated.data.nombre);

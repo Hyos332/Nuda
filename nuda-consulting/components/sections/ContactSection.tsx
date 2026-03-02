@@ -118,6 +118,17 @@ export const ContactSection = () => {
     });
   }
 };
+
+const handleCancel = () => {
+  setStatus("idle");
+  // Opcional: limpiar el formulario si quieres que empiece de cero
+  // formRef.current?.reset(); 
+  toast.info("PROTOCOLO ABORTADO", {
+    description: "VOLVIENDO AL ESTADO INICIAL."
+  });
+};
+
+
   
   return (
     <section id="contacto" className="min-h-screen w-full bg-black flex flex-col items-center justify-center py-32 px-6 relative overflow-hidden">
@@ -149,50 +160,71 @@ export const ContactSection = () => {
               </div>
 
               {/* Sección de Mensaje y OTP (Solo aparece tras enviar el primer paso) */}
-              <AnimatePresence>
-                {status === "awaiting_otp" || status === "sending_final" ? (
-                  <motion.div 
-                    initial={{ height: 0, opacity: 0 }} 
-                    animate={{ height: "auto", opacity: 1 }} 
-                    className="space-y-12 pt-4"
-                  >
-                    <div className="group relative border-b border-[#a31d1d] bg-[#a31d1d]/5 p-4">
-                      <input 
-                        required 
-                        name="otp" 
-                        type="text" 
-                        maxLength={6} 
-                        placeholder="******" 
-                        className="w-full bg-transparent text-white outline-none placeholder:text-white/20 uppercase font-bold tracking-[0.5em] text-xl" 
-                      />
-                      
-                      <div className="flex justify-between items-center mt-4">
-                        {/* Indicador de tiempo de vida */}
-                        <div className="flex items-center gap-2">
-                          <div className="w-1 h-1 bg-[#a31d1d] animate-pulse" />
-                          <p className="text-[7px] text-[#a31d1d] font-mono uppercase tracking-widest">
-                            TTL: 600s // STATUS: ACTIVE
-                          </p>
-                        </div>
+<AnimatePresence>
+  {status === "awaiting_otp" || status === "sending_final" ? (
+    <motion.div 
+      initial={{ height: 0, opacity: 0 }} 
+      animate={{ height: "auto", opacity: 1 }} 
+      className="space-y-12 pt-4"
+    >
+      <div className="group relative border-b border-[#a31d1d] bg-[#a31d1d]/5 p-4">
+        <input 
+          required 
+          name="otp" 
+          type="text" 
+          maxLength={6} 
+          placeholder="******" 
+          className="w-full bg-transparent text-white outline-none placeholder:text-white/20 uppercase font-bold tracking-[0.5em] text-xl" 
+        />
+        
+        <div className="flex justify-between items-center mt-4">
+          {/* Indicador de estado */}
+          <div className="flex items-center gap-2">
+            <div className="w-1 h-1 bg-[#a31d1d] animate-pulse" />
+            <p className="text-[7px] text-[#a31d1d] font-mono uppercase tracking-widest">
+              TTL: 600s // STATUS: ACTIVE
+            </p>
+          </div>
 
-                        {/* El Botón de Reenvío */}
-                        <button 
-                          type="button" 
-                          onClick={handleResendOTP}
-                          className="text-[7px] text-white/40 hover:text-white font-mono uppercase underline decoration-[#a31d1d] underline-offset-4 transition-all hover:tracking-widest"
-                        >
-                          [ Reenviar Token ]
-                        </button>
-                      </div>
-                    </div>
+          {/* Grupo de Acciones */}
+          <div className="flex gap-4">
+            <button 
+              type="button" 
+              onClick={handleResendOTP}
+              className="text-[7px] text-white/40 hover:text-white font-mono uppercase underline decoration-[#a31d1d] underline-offset-4 transition-all"
+            >
+              [ Reenviar ]
+            </button>
+            
+            {/* NUEVO: Botón de Cancelar */}
+            <button 
+              type="button" 
+              onClick={() => {
+                setStatus("idle");
+                toast.info("PROTOCOLO ABORTADO", {
+                  description: "CORRIJA SUS DATOS E INTENTE DE NUEVO."
+                });
+              }}
+              className="text-[7px] text-[#a31d1d] hover:text-white font-mono uppercase transition-all"
+            >
+              [ Cancelar ]
+            </button>
+          </div>
+        </div>
+      </div>
 
-                    <div className="group relative border-b border-white/10 focus-within:border-[#a31d1d]">
-                      {/* <span className="text-[#a31d1d] font-mono text-[9px] block mb-2 opacity-0 group-focus-within:opacity-100 transition-opacity uppercase">VAR_CONCEPTO</span> */}
-                      <textarea required name="mensaje" rows={3} placeholder="03: Describe tu idea" className="w-full bg-transparent py-4 text-white outline-none placeholder:text-white/20 uppercase font-bold tracking-tighter text-lg md:text-2xl resize-none" />
-                    </div>
-                  </motion.div>
-                ) : null}
-              </AnimatePresence>
+      <div className="group relative border-b border-white/10 focus-within:border-[#a31d1d]">
+        <textarea 
+          required 
+          name="mensaje" 
+          rows={3} 
+          placeholder="03: Describe tu idea" 
+          className="w-full bg-transparent py-4 text-white outline-none placeholder:text-white/20 uppercase font-bold tracking-tighter text-lg md:text-2xl resize-none" 
+        />
+      </div>
+    </motion.div>
+  ) : null}
+</AnimatePresence>
 
               <button 
                 type="submit"
