@@ -191,9 +191,9 @@ const handleCancel = () => {
             <button 
               type="button" 
               onClick={handleResendOTP}
-              className="text-[7px] text-white/40 hover:text-white font-mono uppercase underline decoration-[#a31d1d] underline-offset-4 transition-all"
+              className="inline-flex items-center justify-center whitespace-nowrap border border-[#a31d1d]/40 px-3 py-1.5 text-[10px] md:text-xs text-white/70 hover:text-white hover:border-[#a31d1d] font-mono uppercase tracking-[0.08em] transition-all"
             >
-              [ Reenviar ]
+              Reenviar
             </button>
             
             {/* NUEVO: Botón de Cancelar */}
@@ -205,9 +205,9 @@ const handleCancel = () => {
                   description: "CORRIJA SUS DATOS E INTENTE DE NUEVO."
                 });
               }}
-              className="text-[7px] text-[#a31d1d] hover:text-white font-mono uppercase transition-all"
+              className="inline-flex items-center justify-center whitespace-nowrap border border-[#a31d1d]/40 px-3 py-1.5 text-[10px] md:text-xs text-[#c14a4a] hover:text-white hover:border-[#a31d1d] font-mono uppercase tracking-[0.08em] transition-all"
             >
-              [ Cancelar ]
+              Cancelar
             </button>
           </div>
         </div>
