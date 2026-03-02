@@ -182,7 +182,7 @@ const handleCancel = () => {
           <div className="flex items-center gap-2">
             <div className="w-1 h-1 bg-[#a31d1d] animate-pulse" />
             <p className="text-[7px] text-[#a31d1d] font-mono uppercase tracking-widest">
-              TTL: 600s // STATUS: ACTIVE
+              Revisa la bandeja de entrada de tu correo para obtener el código. Duración 10 minutos. 
             </p>
           </div>
 
