@@ -44,3 +44,5 @@ out/
 
 # Images built by next/image
 public/_next/image/
+.vercel
+.env*.local
