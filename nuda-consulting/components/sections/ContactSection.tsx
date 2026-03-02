@@ -1,10 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 
 export const ContactSection = () => {
   const [status, setStatus] = useState<"idle" | "sending" | "success">("idle");
+  const formStartedAtRef = useRef<number>(Date.now());
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -16,6 +17,8 @@ export const ContactSection = () => {
       nombre: formData.get("nombre"),
       email: formData.get("email"),
       mensaje: formData.get("mensaje"),
+      website: formData.get("website"),
+      formStartedAt: formStartedAtRef.current,
     };
 
     try {
@@ -35,6 +38,7 @@ export const ContactSection = () => {
         // luego reseteamos y devolvemos el formulario a la vida.
         setTimeout(() => {
           form.reset();
+          formStartedAtRef.current = Date.now();
           setStatus("idle");
         }, 4000);
       } else {
@@ -67,19 +71,28 @@ export const ContactSection = () => {
             >
               {/* Campos del Formulario */}
               <div className="space-y-12">
+                <input
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  className="hidden"
+                />
+
                 <div className="group relative border-b border-white/10 focus-within:border-[#a31d1d] transition-colors duration-500">
                   <span className="text-[#a31d1d] font-mono text-[9px] block mb-2 opacity-0 group-focus-within:opacity-100 transition-opacity uppercase">VAR_IDENTITY</span>
-                  <input required name="nombre" type="text" placeholder="01: Nombre o agencia" className="w-full bg-transparent py-4 text-white outline-none placeholder:text-white/20 uppercase font-bold tracking-tighter text-lg md:text-2xl transition-all" />
+                  <input required name="nombre" type="text" minLength={2} maxLength={120} placeholder="01: Nombre o agencia" className="w-full bg-transparent py-4 text-white outline-none placeholder:text-white/20 uppercase font-bold tracking-tighter text-lg md:text-2xl transition-all" />
                 </div>
 
                 <div className="group relative border-b border-white/10 focus-within:border-[#a31d1d] transition-colors duration-500">
                   <span className="text-[#a31d1d] font-mono text-[9px] block mb-2 opacity-0 group-focus-within:opacity-100 transition-opacity uppercase">VAR_ENLACE</span>
-                  <input required name="email" type="email" placeholder="02: Email" className="w-full bg-transparent py-4 text-white outline-none placeholder:text-white/20 uppercase font-bold tracking-tighter text-lg md:text-2xl transition-all" />
+                  <input required name="email" type="email" maxLength={254} placeholder="02: Email" className="w-full bg-transparent py-4 text-white outline-none placeholder:text-white/20 uppercase font-bold tracking-tighter text-lg md:text-2xl transition-all" />
                 </div>
 
                 <div className="group relative border-b border-white/10 focus-within:border-[#a31d1d] transition-colors duration-500">
                   <span className="text-[#a31d1d] font-mono text-[9px] block mb-2 opacity-0 group-focus-within:opacity-100 transition-opacity uppercase">VAR_CONCEPTO</span>
-                  <textarea required name="mensaje" rows={3} placeholder="03: Describe tu idea" className="w-full bg-transparent py-4 text-white outline-none placeholder:text-white/20 uppercase font-bold tracking-tighter text-lg md:text-2xl resize-none transition-all" />
+                  <textarea required name="mensaje" rows={3} minLength={10} maxLength={3000} placeholder="03: Describe tu idea" className="w-full bg-transparent py-4 text-white outline-none placeholder:text-white/20 uppercase font-bold tracking-tighter text-lg md:text-2xl resize-none transition-all" />
                 </div>
               </div>
 
